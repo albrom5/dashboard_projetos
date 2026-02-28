@@ -1,0 +1,8 @@
+/.venv
+*.xlsx
+*.mpp
+*.csv
+*.pyc
+.env
+test_out.json
+/__pycache
