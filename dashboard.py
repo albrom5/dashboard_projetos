@@ -322,8 +322,9 @@ if not df_gantt.empty:
         )
         df_gantt = df_gantt.head(LIMITE_GANTT)
 
-    df_gantt["inicio_dt"] = pd.to_datetime(df_gantt["inicio"])
-    df_gantt["termino_dt"] = pd.to_datetime(df_gantt["termino"])
+    # Força datetime64[ns] — obrigatório para Plotly no pandas 2+
+    df_gantt["inicio_dt"] = pd.to_datetime(df_gantt["inicio"].astype(str)).astype("datetime64[ns]")
+    df_gantt["termino_dt"] = pd.to_datetime(df_gantt["termino"].astype(str)).astype("datetime64[ns]")
     df_gantt["pct_label"] = df_gantt["pct_concluido"].apply(
         lambda v: f"{v:.0f}%" if v is not None and not math.isnan(v) else "–"
     )
@@ -359,9 +360,10 @@ if not df_gantt.empty:
         },
     )
 
-    # Linha vertical "hoje"
+    # Linha vertical "hoje" — Plotly timeline exige ms Unix no eixo x
+    hoje_ms = pd.Timestamp(date.today()).value // 1_000_000
     fig_gantt.add_vline(
-        x=pd.Timestamp(date.today()),
+        x=hoje_ms,
         line_dash="dash",
         line_color="#f59e0b",
         annotation_text="Hoje",
