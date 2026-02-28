@@ -15,7 +15,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from processar_dados import ARQUIVO_PADRAO, carregar_dados
+from processar_dados import carregar_dados
 
 # ---------------------------------------------------------------------------
 # CONFIGURAÇÃO DA PÁGINA
@@ -94,33 +94,25 @@ with st.sidebar:
     st.title("Filtros")
     st.divider()
 
-    # Upload de arquivo (opcional – usa o padrão se não houver upload)
+    # Upload obrigatório do arquivo MPP
     arquivo_upload = st.file_uploader(
-        "📂 Carregar arquivo do MS Project",
-        type=["mpp", "csv", "xlsx", "xls"],
-        help=(
-            "Formatos aceitos:\n"
-            "\u2022 .mpp  — arquivo nativo do MS Project (requer Java instalado)\n"
-            "\u2022 .csv  — exportação CSV do MS Project (separador ;)\n"
-            "\u2022 .xlsx / .xls  — exportação Excel do MS Project\n"
-            "Deixe em branco para usar o arquivo padrão da pasta."
-        ),
+        "📂 Carregar arquivo MS Project (.mpp)",
+        type=["mpp"],
+        help="Selecione o arquivo .mpp nativo do MS Project.\nRequisito: Java JRE/JDK 11+ instalado no sistema.",
     )
 
     st.divider()
 
-    # Carrega dados
-    if arquivo_upload is not None:
-        import pathlib
-        import tempfile
+    # Bloqueia execução até que um arquivo seja carregado
+    if arquivo_upload is None:
+        st.info("Faça o upload de um arquivo **.mpp** para iniciar o dashboard.")
+        st.stop()
 
-        # Preserva a extensão original para que o processador detecte o formato
-        ext = pathlib.Path(arquivo_upload.name).suffix or ".csv"
-        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
-            tmp.write(arquivo_upload.read())
-            caminho_dados = tmp.name
-    else:
-        caminho_dados = str(ARQUIVO_PADRAO)
+    # Salva em arquivo temporário preservando a extensão .mpp
+    import tempfile
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mpp") as tmp:
+        tmp.write(arquivo_upload.read())
+        caminho_dados = tmp.name
 
     try:
         df_completo = _carregar(caminho_dados)
